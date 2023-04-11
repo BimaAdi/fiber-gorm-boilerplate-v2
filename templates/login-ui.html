@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css">
+    <style>
+      .hide {
+        display: none;
+      }
+    </style>
+</head>
+<body>
+
+    <div class="modal modal-signin position-static d-block py-5" tabindex="-1" role="dialog" id="modalSignin">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content rounded-4 shadow">
+          <!-- title -->
+          <div class="p-5 pb-4 border-bottom-0">
+            <h1 class="fw-bold mb-0 fs-2">Login</h1>
+            <div id="Validation" class="text-danger text-center hide">invalid credentials</div>
+          </div>
+          
+          <!-- form login -->
+          <div class="modal-body p-5 pt-0">
+            <form>
+              <div class="form-floating mb-3">
+                <input type="email" class="form-control rounded-3" id="username" placeholder="username">
+                <label for="username">Username</label>
+              </div>
+              <div class="form-floating mb-3">
+                <input type="password" class="form-control rounded-3" id="password" placeholder="Password">
+                <label for="password">Password</label>
+                <div class="invalid-feedback">invalid credentials</div>
+              </div>
+              <button class="w-100 mb-2 btn btn-lg rounded-3 btn-primary" type="button" onclick="login()">Login</button>
+            </form>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    
+    <script src="/assets/js/bootstrap.min.js"></script>
+    <script>
+      const login = async () => {
+        // Get input form
+        let inputUsername = document.querySelector('#username')
+        let inputPassword = document.querySelector('#password')
+        let username = inputUsername.value
+        let password = inputPassword.value
+        
+        // Get data from url
+        let href = window.location.href
+        let url = window.location.search
+        let params = new URLSearchParams(url);
+        let response_type = params.get('response_type')
+        let client_id = params.get('client_id')
+        let redirect_uri = params.get('redirect_uri')
+        let scope = params.get('scope')
+        let state = params.get('state')
+
+        // make request
+        let response = await fetch("/oauth/authorize/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          redirect: 'follow',
+          body: JSON.stringify({
+            username,
+            password,
+            response_type,
+            client_id,
+            redirect_uri,
+            scope,
+            state,
+          })
+        })
+        if (response.redirected) {
+          window.location.href = response.url;
+        }
+        
+        if (response.status !== 302 && response.status !== 200) {
+          let message = await response.json();
+          let validationBar = document.getElementById("Validation");
+          validationBar.style.display = "block";
+          validationBar.innerText = message.message
+        }
+      }
+    </script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+services: 
+  postgresql:
+    image: postgres:14.3
+    ports: 
+      - "{POSTGRESQL_PORT}:5432"
+    environment: 
+      - POSTGRES_PASSWORD={POSTGRESQL_PASSWORD}
