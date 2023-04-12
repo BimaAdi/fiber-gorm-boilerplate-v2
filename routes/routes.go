@@ -8,13 +8,16 @@ import (
 // this way every group of routes can be defined in their own file
 // so this one won't be so messy
 func InitiateRoutes(app *fiber.App) *fiber.App {
-	// noPrefixRoutes := router.Group("/")
-	// authRoutes(noPrefixRoutes)
-	// userRoutes(noPrefixRoutes)
 	authRoutes := app.Group("/auth")
 	authRoutes.Post("/login", authLoginRoute)
 	authRoutes.Post("/logout", authLogoutRoute)
 
-	// userRoutes := app.Group("/user")
+	userRoutes := app.Group("/user")
+	userRoutes.Get("/", GetAllUserRoute)
+	userRoutes.Get("/:userId", GetDetailUserRoute)
+	userRoutes.Post("/", CreateUserRoute)
+	userRoutes.Put("/:userId", UpdateUserRoute)
+	userRoutes.Delete("/:userId", DeleteUserRoute)
+
 	return app
 }

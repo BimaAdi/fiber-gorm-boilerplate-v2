@@ -49,7 +49,6 @@ func RunServer(envPath string) {
 	// docs.SwaggerInfo.Host = settings.SERVER_HOST + ":" + settings.SERVER_PORT
 	// routes.GET("/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 
-	// TODO run fiber server
-	// routes.Run(settings.SERVER_HOST + ":" + settings.SERVER_PORT)
+	// run fiber server
 	app.Listen(settings.SERVER_HOST + ":" + settings.SERVER_PORT)
 }

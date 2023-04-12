@@ -2,31 +2,15 @@ package routes
 
 import (
 	"errors"
-	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/BimaAdi/fiberGormBoilerplate/core"
 	"github.com/BimaAdi/fiberGormBoilerplate/models"
 	"github.com/BimaAdi/fiberGormBoilerplate/repository"
 	"github.com/BimaAdi/fiberGormBoilerplate/schemas"
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
-
-func userRoutes(rg *gin.RouterGroup) {
-	users := rg.Group("/user")
-
-	users.GET("/", GetAllUserRoute)
-
-	users.GET("/:userId", GetDetailUserRoute)
-
-	users.POST("/", CreateUserRoute)
-
-	users.PUT("/:userId", UpdateUserRoute)
-
-	users.DELETE("/:userId", DeleteUserRoute)
-}
 
 // Get All User
 //
@@ -42,54 +26,51 @@ func userRoutes(rg *gin.RouterGroup) {
 //	@Failure		500			{object}	schemas.InternalServerErrorResponse
 //	@Security		OAuth2Password
 //	@Router			/user/ [get]
-func GetAllUserRoute(c *gin.Context) {
+func GetAllUserRoute(c *fiber.Ctx) error {
 	// Authorize User
 	_, err := core.GetUserFromAuthorizationHeader(models.DBConn, c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, schemas.UnauthorizedResponse{
+		return c.Status(401).JSON(schemas.UnauthorizedResponse{
 			Message: "Invalid/Expired token",
 		})
-		return
 	}
 
 	// Get Query Parameter
-	page := c.DefaultQuery("page", "1")
-	pageSize := c.DefaultQuery("page_size", "10")
-	search := c.Query("search")
-	pageInt, errPage := strconv.Atoi(page)
-	pageSizeInt, errPageSize := strconv.Atoi((pageSize))
-	if errPage != nil || errPageSize != nil {
+	page := c.QueryInt("page", 1)
+	pageSize := c.QueryInt("page_size", 10)
+	search := c.Query("search", "")
+	if page <= 0 || pageSize <= 0 {
 		errorResponse := []map[string]string{}
-		if errPage != nil {
+		if page <= 0 {
 			x := map[string]string{
-				"page": "invalid page, page should integer",
+				"page": "invalid page, page should positive integer",
 			}
 			errorResponse = append(errorResponse, x)
 		}
 
-		if errPageSize != nil {
+		if pageSize <= 0 {
 			x := map[string]string{
-				"page_size": "invalid page_size, page_size should integer",
+				"page_size": "invalid page_size, page_size should positive integer",
 			}
 			errorResponse = append(errorResponse, x)
 		}
 
-		c.JSON(http.StatusUnprocessableEntity, schemas.UnprocessableEntityResponse{
+		return c.Status(422).JSON(schemas.UnprocessableEntityResponse{
 			Message: errorResponse,
 		})
-		return
 	}
 	var searchNilable *string = nil
 	if search != "" {
 		searchNilable = &search
 	}
 
-	users, numData, numPage, err := repository.GetPaginatedUser(models.DBConn, pageInt, pageSizeInt, searchNilable)
+	users, numData, numPage, err := repository.GetPaginatedUser(
+		models.DBConn, page, pageSize, searchNilable,
+	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, schemas.InternalServerErrorResponse{
+		return c.Status(500).JSON(schemas.InternalServerErrorResponse{
 			Error: err.Error(),
 		})
-		return
 	}
 
 	arrayDetailUser := []schemas.UserDetailResponse{}
@@ -102,11 +83,11 @@ func GetAllUserRoute(c *gin.Context) {
 		})
 	}
 
-	c.JSON(http.StatusOK, schemas.UserPaginateResponse{
+	return c.Status(200).JSON(schemas.UserPaginateResponse{
 		Counts:    int(numData),
 		PageCount: int(numPage),
-		PageSize:  pageSizeInt,
-		Page:      pageInt,
+		PageSize:  pageSize,
+		Page:      page,
 		Results:   arrayDetailUser,
 	})
 }
@@ -124,41 +105,36 @@ func GetAllUserRoute(c *gin.Context) {
 //	@Failure		500	{object}	schemas.InternalServerErrorResponse
 //	@Security		OAuth2Password
 //	@Router			/user/{id} [get]
-func GetDetailUserRoute(c *gin.Context) {
+func GetDetailUserRoute(c *fiber.Ctx) error {
 	// Authorize User
 	_, err := core.GetUserFromAuthorizationHeader(models.DBConn, c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, schemas.UnauthorizedResponse{
+		return c.Status(401).JSON(schemas.UnauthorizedResponse{
 			Message: "Invalid/Expired token",
 		})
-		return
 	}
 
 	// Get Params
-	userId := c.Params.ByName("userId")
+	userId := c.Params("userId")
 	if !core.IsValidUUID(userId) {
-		c.JSON(http.StatusNotFound, schemas.NotFoundResponse{
+		return c.Status(404).JSON(schemas.NotFoundResponse{
 			Message: "user not found",
 		})
-		return
 	}
 
 	user, err := repository.GetUserById(models.DBConn, userId)
 	if err != nil {
-
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, schemas.NotFoundResponse{
+			return c.Status(404).JSON(schemas.NotFoundResponse{
 				Message: "user not found",
 			})
-			return
 		}
-		c.JSON(http.StatusInternalServerError, schemas.InternalServerErrorResponse{
+		return c.Status(500).JSON(schemas.InternalServerErrorResponse{
 			Error: err.Error(),
 		})
-		return
 	}
 
-	c.JSON(http.StatusOK, schemas.UserDetailResponse{
+	return c.Status(200).JSON(schemas.UserDetailResponse{
 		Id:          user.ID,
 		Username:    user.Username,
 		Email:       user.Email,
@@ -180,23 +156,20 @@ func GetDetailUserRoute(c *gin.Context) {
 //	@Failure		500		{object}	schemas.InternalServerErrorResponse
 //	@Security		OAuth2Password
 //	@Router			/user/ [post]
-func CreateUserRoute(c *gin.Context) {
+func CreateUserRoute(c *fiber.Ctx) error {
 	// Authorize User
 	_, err := core.GetUserFromAuthorizationHeader(models.DBConn, c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, schemas.UnauthorizedResponse{
+		return c.Status(401).JSON(schemas.UnauthorizedResponse{
 			Message: "Invalid/Expired token",
 		})
-		return
 	}
 
 	var newUser schemas.UserCreateRequest
-	err = c.BindJSON(&newUser)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, schemas.BadRequestResponse{
+	if err := c.BodyParser(&newUser); err != nil {
+		return c.Status(400).JSON(schemas.BadRequestResponse{
 			Message: err.Error(),
 		})
-		return
 	}
 
 	now := time.Now()
@@ -211,13 +184,12 @@ func CreateUserRoute(c *gin.Context) {
 		&now,
 	)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, schemas.InternalServerErrorResponse{
+		return c.Status(500).JSON(schemas.InternalServerErrorResponse{
 			Error: err.Error(),
 		})
-		return
 	}
 
-	c.JSON(http.StatusCreated, schemas.UserCreateResponse{
+	return c.Status(201).JSON(schemas.UserCreateResponse{
 		Id:          createdUser.ID,
 		Username:    createdUser.Username,
 		Email:       createdUser.Email,
@@ -241,31 +213,28 @@ func CreateUserRoute(c *gin.Context) {
 //	@Failure		500		{object}	schemas.InternalServerErrorResponse
 //	@Security		OAuth2Password
 //	@Router			/user/{id} [put]
-func UpdateUserRoute(c *gin.Context) {
+func UpdateUserRoute(c *fiber.Ctx) error {
 	// Authorize User
 	_, err := core.GetUserFromAuthorizationHeader(models.DBConn, c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, schemas.UnauthorizedResponse{
+		return c.Status(401).JSON(schemas.UnauthorizedResponse{
 			Message: "Invalid/Expired token",
 		})
-		return
 	}
 
 	// get input user
-	userId := c.Params.ByName("userId")
+	userId := c.Params("userId")
 	if !core.IsValidUUID(userId) {
-		c.JSON(http.StatusNotFound, schemas.NotFoundResponse{
+		return c.Status(404).JSON(schemas.NotFoundResponse{
 			Message: "user not found",
 		})
-		return
 	}
+
 	jsonRequest := schemas.UserUpdateRequest{}
-	err = c.BindJSON(&jsonRequest)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, schemas.BadRequestResponse{
+	if err = c.BodyParser(&jsonRequest); err != nil {
+		return c.Status(400).JSON(schemas.BadRequestResponse{
 			Message: err.Error(),
 		})
-		return
 	}
 
 	// get existing user
@@ -273,15 +242,13 @@ func UpdateUserRoute(c *gin.Context) {
 	if err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, schemas.NotFoundResponse{
+			return c.Status(404).JSON(schemas.NotFoundResponse{
 				Message: "user not found",
 			})
-			return
 		}
-		c.JSON(http.StatusInternalServerError, schemas.InternalServerErrorResponse{
+		return c.Status(500).JSON(schemas.InternalServerErrorResponse{
 			Error: err.Error(),
 		})
-		return
 	}
 
 	// update user
@@ -296,13 +263,12 @@ func UpdateUserRoute(c *gin.Context) {
 	)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, schemas.InternalServerErrorResponse{
+		return c.Status(500).JSON(schemas.InternalServerErrorResponse{
 			Error: err.Error(),
 		})
-		return
 	}
 
-	c.JSON(http.StatusOK, schemas.UserUpdateResponse{
+	return c.Status(200).JSON(schemas.UserUpdateResponse{
 		Id:          updatedUser.ID,
 		Username:    updatedUser.Username,
 		Email:       updatedUser.Email,
@@ -322,47 +288,41 @@ func UpdateUserRoute(c *gin.Context) {
 //	@Failure		500	{object}	schemas.InternalServerErrorResponse
 //	@Security		OAuth2Password
 //	@Router			/user/{id} [delete]
-func DeleteUserRoute(c *gin.Context) {
+func DeleteUserRoute(c *fiber.Ctx) error {
 	// Authorize User
 	_, err := core.GetUserFromAuthorizationHeader(models.DBConn, c)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, schemas.UnauthorizedResponse{
+		return c.Status(401).JSON(schemas.UnauthorizedResponse{
 			Message: "Invalid/Expired token",
 		})
-		return
 	}
 
 	// get input user
-	userId := c.Params.ByName("userId")
+	userId := c.Params("userId")
 	if !core.IsValidUUID(userId) {
-		c.JSON(http.StatusNotFound, schemas.NotFoundResponse{
+		return c.Status(404).JSON(schemas.NotFoundResponse{
 			Message: "user not found",
 		})
-		return
 	}
 
 	// get existing user
 	user, err := repository.GetUserById(models.DBConn, userId)
 	if err != nil {
-
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			c.JSON(http.StatusNotFound, schemas.NotFoundResponse{
+			return c.Status(404).JSON(schemas.NotFoundResponse{
 				Message: "user not found",
 			})
-			return
 		}
-		c.JSON(http.StatusInternalServerError, schemas.InternalServerErrorResponse{
+		return c.Status(500).JSON(schemas.InternalServerErrorResponse{
 			Error: err.Error(),
 		})
-		return
 	}
 
 	_, err = repository.DeleteUser(models.DBConn, user)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, schemas.InternalServerErrorResponse{
+		return c.Status(500).JSON(schemas.InternalServerErrorResponse{
 			Error: err.Error(),
 		})
-		return
 	}
-	c.JSON(http.StatusNoContent, nil)
+	return c.Status(204).JSON(nil)
 }

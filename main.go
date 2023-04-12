@@ -11,13 +11,13 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-// @title									Gin Gorm Boilerplate
-// @version								1.0
-// @description							Rest api boilerpate in gin
+//	@title									Gin Gorm Boilerplate
+//	@version								1.0
+//	@description							Rest api boilerpate in gin
 //
-// @securitydefinitions.oauth2.password	OAuth2Password
-// @tokenurl								/auth/login
-// @BasePath								/
+//	@securitydefinitions.oauth2.password	OAuth2Password
+//	@tokenurl								/auth/login
+//	@BasePath								/
 func main() {
 	app := &cli.App{
 		Commands: []*cli.Command{
