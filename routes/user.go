@@ -153,6 +153,7 @@ func GetDetailUserRoute(c *fiber.Ctx) error {
 //	@Param			user	body		schemas.UserCreateRequest	true	"Create User"
 //	@Success		200		{object}	schemas.UserCreateResponse
 //	@Failure		400		{object}	schemas.BadRequestResponse
+//	@Failure		422		{object}	schemas.UnprocessableEntityResponse
 //	@Failure		500		{object}	schemas.InternalServerErrorResponse
 //	@Security		OAuth2Password
 //	@Router			/user/ [post]
@@ -165,11 +166,16 @@ func CreateUserRoute(c *fiber.Ctx) error {
 		})
 	}
 
+	// validation
 	var newUser schemas.UserCreateRequest
 	if err := c.BodyParser(&newUser); err != nil {
 		return c.Status(400).JSON(schemas.BadRequestResponse{
 			Message: err.Error(),
 		})
+	}
+	is_valid, validation_errors := core.ValidateSchemas(newUser)
+	if !is_valid {
+		return c.Status(422).JSON(validation_errors)
 	}
 
 	now := time.Now()
@@ -210,6 +216,7 @@ func CreateUserRoute(c *fiber.Ctx) error {
 //	@Success		200		{object}	schemas.UserUpdateResponse
 //	@Failure		400		{object}	schemas.BadRequestResponse
 //	@Failure		404		{object}	schemas.NotFoundResponse
+//	@Failure		422		{object}	schemas.UnprocessableEntityResponse
 //	@Failure		500		{object}	schemas.InternalServerErrorResponse
 //	@Security		OAuth2Password
 //	@Router			/user/{id} [put]
@@ -230,11 +237,16 @@ func UpdateUserRoute(c *fiber.Ctx) error {
 		})
 	}
 
+	// validation
 	jsonRequest := schemas.UserUpdateRequest{}
 	if err = c.BodyParser(&jsonRequest); err != nil {
 		return c.Status(400).JSON(schemas.BadRequestResponse{
 			Message: err.Error(),
 		})
+	}
+	is_valid, validation_errors := core.ValidateSchemas(jsonRequest)
+	if !is_valid {
+		return c.Status(422).JSON(validation_errors)
 	}
 
 	// get existing user

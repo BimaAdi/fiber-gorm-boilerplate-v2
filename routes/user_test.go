@@ -309,9 +309,30 @@ func (suite *MigrateTestSuite) TestCreateUser() {
 	// Expect 2
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), 401, resp2.StatusCode)
+
+	// When 3
+	// invalid json
+	json_string := `{
+		"username":"hello",
+		"password":"hei"
+	}`
+	req3, _ := http.NewRequest("POST", "/user/", bytes.NewBuffer([]byte(json_string)))
+	req3.Header.Set("Content-Type", "application/json")
+	req3.Header.Set("authorization", "Bearer "+token)
+	resp3, err := suite.app.Test(req3, suite.timeout)
+
+	// Expect 3
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), 422, resp3.StatusCode)
+	jsonResponse3 := schemas.UnprocessableEntityResponse{}
+	body, err = io.ReadAll(resp3.Body)
+	if err != nil {
+		suite.T().Error(err.Error())
+	}
+	err = json.Unmarshal(body, &jsonResponse3)
+	assert.Nil(suite.T(), err, "Invalid response json")
 }
 
-// TODO still error on update user
 func (suite *MigrateTestSuite) TestUpdateUser() {
 	// Given
 	// create request user
@@ -367,6 +388,7 @@ func (suite *MigrateTestSuite) TestUpdateUser() {
 	}
 	requestJsonByte1, _ := json.Marshal(requestJson1)
 	req1, _ := http.NewRequest("PUT", "/user/"+givenJsonResponse.Id, bytes.NewBuffer(requestJsonByte1))
+	req1.Header.Set("Content-Type", "application/json")
 	req1.Header.Set("authorization", "Bearer "+token)
 	resp1, err := suite.app.Test(req1, suite.timeout)
 
@@ -378,7 +400,6 @@ func (suite *MigrateTestSuite) TestUpdateUser() {
 	if err != nil {
 		suite.T().Error(err.Error())
 	}
-	suite.T().Log(string(body))
 	err = json.Unmarshal(body, &jsonResponse1)
 	assert.Nil(suite.T(), err, "Invalid response json")
 
@@ -394,6 +415,7 @@ func (suite *MigrateTestSuite) TestUpdateUser() {
 	}
 	requestJsonByte2, _ := json.Marshal(requestJson2)
 	req2, _ := http.NewRequest("PUT", "/user/aaaaa-bbbbb-ccccc", bytes.NewBuffer(requestJsonByte2))
+	req2.Header.Set("Content-Type", "application/json")
 	req2.Header.Set("authorization", "Bearer "+token)
 	resp2, err := suite.app.Test(req2, suite.timeout)
 
@@ -420,11 +442,34 @@ func (suite *MigrateTestSuite) TestUpdateUser() {
 	}
 	requestJsonByte3, _ := json.Marshal(requestJson3)
 	req3, _ := http.NewRequest("PUT", "/user/"+givenJsonResponse.Id, bytes.NewBuffer(requestJsonByte3))
+	req3.Header.Set("Content-Type", "application/json")
 	resp3, err := suite.app.Test(req3, suite.timeout)
 
 	// Expect 3
 	assert.Nil(suite.T(), err)
 	assert.Equal(suite.T(), 401, resp3.StatusCode)
+
+	// When 4
+	// invalid json
+	json_string := `{
+		"username":"hello",
+		"password":null
+	}`
+	req4, _ := http.NewRequest("PUT", "/user/"+givenJsonResponse.Id, bytes.NewBuffer([]byte(json_string)))
+	req4.Header.Set("Content-Type", "application/json")
+	req4.Header.Set("authorization", "Bearer "+token)
+	resp4, err := suite.app.Test(req4, suite.timeout)
+
+	// Expect 4
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), 422, resp4.StatusCode)
+	jsonResponse4 := schemas.UnprocessableEntityResponse{}
+	body, err = io.ReadAll(resp4.Body)
+	if err != nil {
+		suite.T().Error(err.Error())
+	}
+	err = json.Unmarshal(body, &jsonResponse4)
+	assert.Nil(suite.T(), err, "Invalid response json")
 }
 
 func (suite *MigrateTestSuite) TestDeleteUser() {

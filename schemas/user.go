@@ -17,11 +17,11 @@ type UserPaginateResponse struct {
 }
 
 type UserCreateRequest struct {
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	Password    string `json:"password"`
-	IsActive    bool   `json:"is_active"`
-	IsSuperuser bool   `json:"is_superuser"`
+	Username    string `json:"username" validate:"required"`
+	Email       string `json:"email" validate:"required"`
+	Password    string `json:"password" validate:"required"`
+	IsActive    bool   `json:"is_active" validate:"required"`
+	IsSuperuser bool   `json:"is_superuser" validate:"required"`
 }
 
 type UserCreateResponse struct {
@@ -33,11 +33,11 @@ type UserCreateResponse struct {
 }
 
 type UserUpdateRequest struct {
-	Username    string  `json:"username"`
-	Email       string  `json:"email"`
+	Username    string  `json:"username" validate:"required"`
+	Email       string  `json:"email" validate:"required"`
 	Password    *string `json:"password"`
-	IsActive    bool    `json:"is_active"`
-	IsSuperuser bool    `json:"is_superuser"`
+	IsActive    bool    `json:"is_active" validate:"required"`
+	IsSuperuser bool    `json:"is_superuser" validate:"required"`
 }
 
 type UserUpdateResponse struct {
