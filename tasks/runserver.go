@@ -5,6 +5,7 @@ import (
 	"github.com/BimaAdi/fiberGormBoilerplate/routes"
 	"github.com/BimaAdi/fiberGormBoilerplate/settings"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 )
 
 func RunServer(envPath string) {
@@ -19,29 +20,25 @@ func RunServer(envPath string) {
 	// 	gin.SetMode(gin.ReleaseMode)
 	// }
 
-	// TODO Cors Middleware
-	// router := gin.Default()
-	// router.Use(cors.New(cors.Config{
-	// 	AllowAllOrigins:        true,
-	// 	AllowOrigins:           []string{},
-	// 	AllowMethods:           []string{"GET", "POST", "PUT", "DELETE", "OPTION"},
-	// 	AllowHeaders:           []string{"Origin", "Content-Type", "authorization", "accept"},
-	// 	AllowCredentials:       true,
-	// 	ExposeHeaders:          []string{"Content-Length"},
-	// 	MaxAge:                 0,
-	// 	AllowWildcard:          true,
-	// 	AllowBrowserExtensions: true,
-	// 	AllowWebSockets:        true,
-	// 	AllowFiles:             true,
-	// }))
+	// Initiate fiber app
+	app := fiber.New()
+
+	// Cors Middleware
+	app.Use(cors.New(cors.Config{
+		Next:             nil,
+		AllowOrigins:     "*",
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
+		AllowHeaders:     "",
+		AllowCredentials: false,
+		ExposeHeaders:    "",
+		MaxAge:           0,
+	}))
 
 	// TODO Initiate static and template
 	// router.Static("/assets", "./assets")
 	// router.LoadHTMLGlob("templates/*.html")
 
 	// Initialize fiber route
-	// routes := routes.GetRoutes(router)
-	app := fiber.New()
 	app = routes.InitiateRoutes(app)
 
 	// TODO setup swagger
