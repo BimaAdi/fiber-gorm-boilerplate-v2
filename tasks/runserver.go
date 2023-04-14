@@ -1,11 +1,13 @@
 package tasks
 
 import (
+	_ "github.com/BimaAdi/fiberGormBoilerplate/docs"
 	"github.com/BimaAdi/fiberGormBoilerplate/models"
 	"github.com/BimaAdi/fiberGormBoilerplate/routes"
 	"github.com/BimaAdi/fiberGormBoilerplate/settings"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/swagger"
 )
 
 func RunServer(envPath string) {
@@ -41,10 +43,8 @@ func RunServer(envPath string) {
 	// Initialize fiber route
 	app = routes.InitiateRoutes(app)
 
-	// TODO setup swagger
-	// docs.SwaggerInfo.BasePath = "/"
-	// docs.SwaggerInfo.Host = settings.SERVER_HOST + ":" + settings.SERVER_PORT
-	// routes.GET("/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+	// setup swagger
+	app.Get("/docs/*", swagger.HandlerDefault)
 
 	// run fiber server
 	app.Listen(settings.SERVER_HOST + ":" + settings.SERVER_PORT)

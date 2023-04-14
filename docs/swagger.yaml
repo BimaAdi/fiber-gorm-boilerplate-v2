@@ -33,6 +33,15 @@ definitions:
       message:
         type: string
     type: object
+  schemas.UnprocessableEntityResponse:
+    properties:
+      message:
+        items:
+          additionalProperties:
+            type: string
+          type: object
+        type: array
+    type: object
   schemas.UserCreateRequest:
     properties:
       email:
@@ -45,6 +54,12 @@ definitions:
         type: string
       username:
         type: string
+    required:
+    - email
+    - is_active
+    - is_superuser
+    - password
+    - username
     type: object
   schemas.UserCreateResponse:
     properties:
@@ -99,6 +114,11 @@ definitions:
         type: string
       username:
         type: string
+    required:
+    - email
+    - is_active
+    - is_superuser
+    - username
     type: object
   schemas.UserUpdateResponse:
     properties:
@@ -228,6 +248,10 @@ paths:
           description: Bad Request
           schema:
             $ref: '#/definitions/schemas.BadRequestResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/schemas.UnprocessableEntityResponse'
         "500":
           description: Internal Server Error
           schema:
@@ -325,6 +349,10 @@ paths:
           description: Not Found
           schema:
             $ref: '#/definitions/schemas.NotFoundResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/schemas.UnprocessableEntityResponse'
         "500":
           description: Internal Server Error
           schema:

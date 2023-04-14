@@ -193,6 +193,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/schemas.BadRequestResponse"
                         }
                     },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.UnprocessableEntityResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -307,6 +313,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/schemas.NotFoundResponse"
                         }
                     },
+                    "422": {
+                        "description": "Unprocessable Entity",
+                        "schema": {
+                            "$ref": "#/definitions/schemas.UnprocessableEntityResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -410,8 +422,29 @@ const docTemplate = `{
                 }
             }
         },
+        "schemas.UnprocessableEntityResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "schemas.UserCreateRequest": {
             "type": "object",
+            "required": [
+                "email",
+                "is_active",
+                "is_superuser",
+                "password",
+                "username"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -495,6 +528,12 @@ const docTemplate = `{
         },
         "schemas.UserUpdateRequest": {
             "type": "object",
+            "required": [
+                "email",
+                "is_active",
+                "is_superuser",
+                "username"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
