@@ -588,8 +588,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "Gin Gorm Boilerplate",
-	Description:      "Rest api boilerpate in gin",
+	Title:            "Fiber Gorm Boilerplate",
+	Description:      "Rest api boilerpate in fiber",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }

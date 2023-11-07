@@ -135,8 +135,8 @@ definitions:
     type: object
 info:
   contact: {}
-  description: Rest api boilerpate in gin
-  title: Gin Gorm Boilerplate
+  description: Rest api boilerpate in fiber
+  title: Fiber Gorm Boilerplate
   version: "1.0"
 paths:
   /auth/login:

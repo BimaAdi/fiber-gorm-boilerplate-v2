@@ -1,8 +1,8 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "Rest api boilerpate in gin",
-        "title": "Gin Gorm Boilerplate",
+        "description": "Rest api boilerpate in fiber",
+        "title": "Fiber Gorm Boilerplate",
         "contact": {},
         "version": "1.0"
     },

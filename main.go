@@ -11,9 +11,9 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-//	@title									Gin Gorm Boilerplate
+//	@title									Fiber Gorm Boilerplate
 //	@version								1.0
-//	@description							Rest api boilerpate in gin
+//	@description							Rest api boilerpate in fiber
 //
 //	@securitydefinitions.oauth2.password	OAuth2Password
 //	@tokenurl								/auth/login
